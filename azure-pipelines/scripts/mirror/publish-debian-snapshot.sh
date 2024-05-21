@@ -207,6 +207,10 @@ main()
     echo NFS_DIR=$NFS_DIR
     echo APT_MIRROR_DIR=$APT_MIRROR_DIR
     echo PUBLISH_DIR=$PUBLISH_DIR
+    ls -l $WORK_DIR
+    ls -l $NFS_DIR
+    ls -l $APT_MIRROR_DIR
+    ls -l $PUBLISH_DIR
     prepare_workspace
     #update_mirrors
 }
