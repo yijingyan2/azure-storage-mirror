@@ -6,7 +6,7 @@
 trigger: none
 pr: none
 
-pool: sonic-mgmt-westus2
+pool: sonic-mgmt-westus2-1es
 variables:
 - group: vg-storage-westus2
 

@@ -203,8 +203,12 @@ update_mirrors()
 
 main()
 {
+    echo WORK_DIR=$WORK_DIR
+    echo NFS_DIR=$NFS_DIR
+    echo APT_MIRROR_DIR=$APT_MIRROR_DIR
+    echo PUBLISH_DIR=$PUBLISH_DIR
     prepare_workspace
-    update_mirrors
+    #update_mirrors
 }
 
 main
