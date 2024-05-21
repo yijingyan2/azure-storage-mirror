@@ -212,7 +212,7 @@ main()
     ls -l $APT_MIRROR_DIR
     ls -l $PUBLISH_DIR
     prepare_workspace
-    #update_mirrors
+    update_mirrors
 }
 
 main
