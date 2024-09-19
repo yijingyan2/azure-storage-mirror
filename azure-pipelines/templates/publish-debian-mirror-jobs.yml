@@ -59,7 +59,7 @@ jobs:
         curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash
 
         . /etc/os-release
-        if [ "$VERSION_ID" == "20.04" ]; then
+        if [ "$VERSION_ID" == "20.04" ] && [[ ${{ parameters.mirrorType }} == 'aptly' ]]; then
           sudo apt-get install -y gpgv2 gpgv gnupg2
           wget 'https://sonicstoragepublic20.blob.core.windows.net/public/aptly/1.4.0/aptly_1.4.0%2Bds1-7_amd64.deb' -O aptly_1.4.0+ds1-7_amd64.deb
           sudo dpkg -i --force-all aptly_1.4.0+ds1-7_amd64.deb
@@ -82,7 +82,7 @@ jobs:
         fi
 
         az login --identity -u $CLIENT_ID
-        azcopy login --identity --identity-client-id $CLIENT_ID
+        azcopy login --login-type=MSI --identity-client-id $CLIENT_ID
       displayName: 'Init agent'
     - script: |
         echo "STORAGE_ACCOUNT=$STORAGE_ACCOUNT"
