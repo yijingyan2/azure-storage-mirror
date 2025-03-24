@@ -51,12 +51,13 @@ jobs:
       wc -l versions-web
       azcopy list 'https://$(StorageAccount).blob.core.windows.net/packages/' > $(StorageAccount)
       mkdir webfiles
-      for file_md5 in $(cat versions-web); do
+      for file_md5 in $(cat versions-web) $(extrafiles); do
         url=$(echo $file_md5 | sed 's/==.*//')
         md5=$(echo $file_md5 | sed 's/.*==//')
         filename=$(echo $url | awk -F"/" '{print $NF}' | cut -d? -f1 | cut -d# -f1)
         if ! wget -q -O webfiles/$filename "$url"; then
           echo "$url" >> filesnotexist
+          rm -rf webfiles/$filename
           continue
         fi
         new_md5=$(md5sum webfiles/$filename | cut -d " " -f1)
