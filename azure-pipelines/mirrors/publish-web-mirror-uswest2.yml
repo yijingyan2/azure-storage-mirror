@@ -51,7 +51,7 @@ jobs:
       wc -l versions-web
       azcopy list 'https://$(StorageAccount).blob.core.windows.net/packages/' > $(StorageAccount)
       mkdir webfiles
-      for file_md5 in "$(cat versions-web) $(extrafiles)"; do
+      for file_md5 in $(cat versions-web) $(extrafiles); do
         url=$(echo $file_md5 | sed 's/==.*//')
         [ -z "$url" ] && continue
         md5=$(echo $file_md5 | sed 's/.*==//')
