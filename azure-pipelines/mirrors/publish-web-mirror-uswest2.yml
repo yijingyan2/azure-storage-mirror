@@ -74,7 +74,6 @@ jobs:
       azcopy cp "webfiles/*" "https://$(StorageAccount).blob.core.windows.net/packages/"
     displayName: "Publish Web Mirror"
   - bash: |
-      set -ex
       echo "==================filesnotexist=================="
       cat test/filesnotexist || true
       echo "==================filesnotmatch=================="
