@@ -51,8 +51,9 @@ jobs:
       wc -l versions-web
       azcopy list 'https://$(StorageAccount).blob.core.windows.net/packages/' > $(StorageAccount)
       mkdir webfiles
-      for file_md5 in $(cat versions-web) $(extrafiles); do
+      for file_md5 in "$(cat versions-web) $(extrafiles)"; do
         url=$(echo $file_md5 | sed 's/==.*//')
+        [ -z "$url" ] && continue
         md5=$(echo $file_md5 | sed 's/.*==//')
         filename=$(echo $url | awk -F"/" '{print $NF}' | cut -d? -f1 | cut -d# -f1)
         if ! wget -q -O webfiles/$filename "$url"; then
@@ -67,6 +68,7 @@ jobs:
           rm webfiles/$filename-$new_md5
         fi
       done
+      ls webfiles/* || { echo "Nothing Changed!!!"; exit 0; }
       ls -l webfiles/ | awk '{print$NF}' > files
       export AZCOPY_AUTO_LOGIN_TYPE=MSI
       azcopy cp "webfiles/*" "https://$(StorageAccount).blob.core.windows.net/packages/"
