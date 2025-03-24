@@ -67,6 +67,7 @@ jobs:
         fi
       done
       ls -l webfiles/ | awk '{print$NF}' > files
+      export AZCOPY_AUTO_LOGIN_TYPE=MSI
       azcopy cp "webfiles/*" "https://$(StorageAccount).blob.core.windows.net/packages/"
     displayName: "Publish Web Mirror"
   - bash: |
