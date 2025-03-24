@@ -76,10 +76,10 @@ jobs:
   - bash: |
       set -ex
       echo "==================filesnotexist=================="
-      cat filesnotexist
+      cat filesnotexist || true
       echo "==================filesnotmatch=================="
-      cat filesnotmatch
+      cat filesnotmatch || true
       echo "==================upload files=================="
-      cat files
+      cat files || true
     condition: always()
     displayName: Result Show
