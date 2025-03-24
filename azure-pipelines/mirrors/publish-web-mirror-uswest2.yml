@@ -66,7 +66,7 @@ jobs:
           rm webfiles/$filename-$new_md5
         fi
       done
-      ls -l webfiles/ awk '{print$NF}' > files
+      ls -l webfiles/ | awk '{print$NF}' > files
       azcopy cp "webfiles/*" "https://$(StorageAccount).blob.core.windows.net/packages/"
     displayName: "Publish Web Mirror"
   - bash: |
@@ -77,4 +77,5 @@ jobs:
       cat filesnotmatch
       echo "==================upload files=================="
       cat files
+    condition: always()
     displayName: Result Show
