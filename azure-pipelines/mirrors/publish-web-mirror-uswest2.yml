@@ -29,6 +29,10 @@ jobs:
   - checkout: none
   - bash: |
       set -ex
+      wget -O- "https://aka.ms/downloadazcopy-v10-linux" | tar -zxf - --strip-components=1
+      sudo chmod a+x azcopy
+      sudo mv -f azcopy /usr/local/bin/
+      azcopy  --version
       mkdir test
       cd test
       rm versions-web filesnotexist filesnotmatch files -rf
