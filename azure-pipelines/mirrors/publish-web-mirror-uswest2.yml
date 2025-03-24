@@ -33,6 +33,7 @@ jobs:
       sudo chmod a+x azcopy
       sudo mv -f azcopy /usr/local/bin/
       azcopy  --version
+      rm test -rf
       mkdir test
       cd test
       rm versions-web filesnotexist filesnotmatch files -rf
