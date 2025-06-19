@@ -11,6 +11,9 @@ parameters:
   - name: 'debian'
     url: 'http://deb.debian.org/debian'
     mirrors:
+    - name: trixie
+      distributions: 'trixie,trixie-updates,trixie-backports'
+      components: 'contrib,non-free,main,non-free-firmware'
     - name: bookworm
       distributions: 'bookworm,bookworm-updates,bookworm-backports'
       components: 'contrib,non-free,main,non-free-firmware'
@@ -26,6 +29,9 @@ parameters:
   - name: 'debian-security'
     url: 'http://security.debian.org/debian-security'
     mirrors:
+    - name: 'trixie-security'
+      distributions: 'trixie-security'
+      components: 'contrib,non-free,main,non-free-firmware'
     - name: 'bookworm-security'
       distributions: 'bookworm-security'
       components: 'contrib,non-free,main,non-free-firmware'
