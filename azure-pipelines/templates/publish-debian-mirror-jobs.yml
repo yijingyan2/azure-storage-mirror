@@ -86,10 +86,8 @@ jobs:
           sudo mv -f azcopy /usr/local/bin/
           azcopy --version
         fi
-
-        az login --identity -u $CLIENT_ID
-        azcopy login --login-type=MSI --identity-client-id $CLIENT_ID
       displayName: 'Init agent'
+      retryCountOnTaskFailure: 5
     - script: |
         echo "STORAGE_ACCOUNT=$STORAGE_ACCOUNT"
         echo "MIRROR_FILESYSTEM=$MIRROR_FILESYSTEM"
@@ -119,6 +117,7 @@ jobs:
                 MIRROR_COMPONENTS: ${{ mirror.components }}
             steps:
             - script: |
+                set -x
                 if [[ "$MIRROR_NAME" == jessie* ]]; then
                   echo "Skipped to update mirror $MIRROR_NAME, $MIRROR_URL"
                   exit 0
@@ -140,6 +139,12 @@ jobs:
           - script: |
               sudo apt-get install -y apt-mirror
             displayName: 'Init for apt mirror'
-          - script: |
-               azure-pipelines/scripts/mirror/publish-debian-snapshot.sh  -n "$MIRROR_FILESYSTEM" -u "$MIRROR_URL" -j "$MIRRORS" -a "$MIRROR_ARICHTECTURES" -c "$MIRROR_COMPONENTS" -b "$STORAGE_ACCOUNT"
-            displayName: 'Publish Apt Mirror'
+          - task: AzureCLI@2
+            displayName: Publish Apt mirror by task
+            inputs:
+              azureSubscription: 'debian-snapshot'
+              scriptType: 'bash'
+              scriptLocation: 'inlineScript'
+              inlineScript: |
+                set -x
+                azure-pipelines/scripts/mirror/publish-debian-snapshot.sh  -n "$MIRROR_FILESYSTEM" -u "$MIRROR_URL" -j "$MIRRORS" -a "$MIRROR_ARICHTECTURES" -c "$MIRROR_COMPONENTS" -b "$STORAGE_ACCOUNT"
