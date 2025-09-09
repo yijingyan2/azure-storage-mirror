@@ -9,12 +9,11 @@
 
 usage()
 {
-    echo "Usage:   $0 -n <name> -u <url> -d <distributions> -a <architectures> -c <components> [-b <backup_storage> [ -s <storage_suffix>]]"
-    echo "Usage:   $0 -n <name> -u <url> -j <json_config> [-a <architectures>] [-c <components>] [-b <backup_storage> [ -s <storage_suffix>]]"
+    echo "Usage:   $0 -n <name> -u <url> -d <distributions> -a <architectures> -c <components>"
+    echo "Usage:   $0 -n <name> -u <url> -j <json_config> [-a <architectures>] [-c <components>]"
     echo "Example: $0 -n debian \\"
     echo "         -u \"http://deb.debian.org/debian\" -d bullseye,bullseye-updates,bullseye-backports \\"
     echo "         -a amd64,armhf,arm64 -c contrib,non-free,main \\"
-    echo "         -b <storage_account>"
     exit 1
 }
 
@@ -24,9 +23,7 @@ DISTRIBUTIONS=
 MIRROR_URL=
 ARCHITECTURES=
 COMPONENTS=
-BACKUP_STORAGE=
 JSON_CONFIG=
-STORAGE_SUFFIX="core.windows.net"
 
 while getopts "n:u:d:a:c:b:i:j:f" opt; do
     case $opt in
@@ -44,12 +41,6 @@ while getopts "n:u:d:a:c:b:i:j:f" opt; do
             ;;
         c)
             COMPONENTS=$OPTARG
-            ;;
-        b)
-            BACKUP_STORAGE=$OPTARG
-            ;;
-        s)
-            STORAGE_SUFFIX=$OPTARG
             ;;
         j)
             JSON_CONFIG=$OPTARG
@@ -75,7 +66,6 @@ fi
 [ -z "$COMPONENTS" ] && COMPONENTS="contrib,non-free,main"
 [ -z "$ARCHITECTURES" ] && ARCHITECTURES="amd64,armhf,arm64"
 [ -z "$NFS_ROOT" ] && NFS_ROOT=/nfs
-[ -z "$MIRROR_ROOT" ] && MIRROR_ROOT=/mirrors
 
 MIRROR_REL_DIR=v1/sn
 PACKAGES_DENY_LIST=debian-packages-denylist.conf
@@ -85,8 +75,6 @@ WORK_DIR=$SOURCE_DIR/work
 NFS_DIR=$NFS_ROOT/$MIRROR_REL_DIR
 APT_MIRROR_DIR=$NFS_DIR/work/$FILESYSTEM_NAME
 PUBLISH_DIR=$NFS_DIR/publish/$FILESYSTEM_NAME
-BACKUP_STORAGE_URL="https://$BACKUP_STORAGE.blob.$STORAGE_SUFFIX"
-STORAGE_MIRROR_URL="$BACKUP_STORAGE_URL$MIRROR_ROOT/$MIRROR_REL_DIR/$FILESYSTEM_NAME"
 
 mkdir -p $WORK_DIR
 mkdir -p $APT_MIRROR_DIR
@@ -191,14 +179,7 @@ update_mirrors()
     
     # Save pool and mirror indexes
     # Not necessary to save the workspace, the apt-mirror workspace only to accelerate the download speed
-    package="sn-$SNAPSHOT_TIME.tar.gz"
-    tar -czf "$package" -C $PUBLISH_DIR $SNAPSHOT_TIME
     echo $SNAPSHOT_TIME > latest
-    exclude_pattern=$(sed '/^[[:space:]]*$/d' $PACKAGES_DENY_LIST | sed 's/$/*/' | paste -sd ";" -)
-    echo "exclude_pattern=$exclude_pattern"
-    azcopy sync "$SNAPSHOT_POINT/pool/" "$STORAGE_MIRROR_URL/publish/pool/" --exclude-pattern="$exclude_pattern" --recursive=true
-    azcopy cp ./$package "$STORAGE_MIRROR_URL/publish/dists/"
-    azcopy cp latest "$STORAGE_MIRROR_URL/publish/dists/"
 }
 
 main()
