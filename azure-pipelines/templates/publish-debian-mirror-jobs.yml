@@ -132,6 +132,7 @@ jobs:
           steps:
           - script: |
                set -x
+               df -h # /nfs max storage is 4 TBi
                ls -al /nfs/v1/sn/work/debian/mirror/deb.debian.org/debian/pool /nfs/v1/sn/work/debian-security/mirror/security.debian.org/debian-security/pool
                ls -al /nfs/v1/sn/publish/debian/ /nfs/v1/sn/publish/debian-security/ 
                ls -al /nfs/v1/sn/work/debian/mirror/deb.debian.org/debian/ /nfs/v1/sn/work/debian-security/mirror/security.debian.org/debian-security/
