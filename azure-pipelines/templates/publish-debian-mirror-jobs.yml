@@ -61,16 +61,10 @@ jobs:
         set -ex
         ip addr
         sudo apt-get update
-        sudo apt-get install -y aptly nfs-common jq
+        sudo apt-get install -y nfs-common jq apt-mirror
         curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash
 
         . /etc/os-release
-        if [ "$VERSION_ID" == "20.04" ] && [[ ${{ parameters.mirrorType }} == 'aptly' ]]; then
-          sudo apt-get install -y gpgv2 gpgv gnupg2
-          wget 'https://sonicstoragepublic20.blob.core.windows.net/public/aptly/1.4.0/aptly_1.4.0%2Bds1-7_amd64.deb' -O aptly_1.4.0+ds1-7_amd64.deb
-          sudo dpkg -i --force-all aptly_1.4.0+ds1-7_amd64.deb
-          sudo apt --fix-broken install -y
-        fi
         sudo mkdir -p $NFS_MOUNT_POINT $MIRROR_ROOT
         sudo chown $(id -un):$(id -gn) $MIRROR_ROOT
         sudo umount $NFS_MOUNT_POINT || true
@@ -86,10 +80,8 @@ jobs:
           sudo mv -f azcopy /usr/local/bin/
           azcopy --version
         fi
-
-        az login --identity -u $CLIENT_ID
-        azcopy login --login-type=MSI --identity-client-id $CLIENT_ID
       displayName: 'Init agent'
+      retryCountOnTaskFailure: 5
     - script: |
         echo "STORAGE_ACCOUNT=$STORAGE_ACCOUNT"
         echo "MIRROR_FILESYSTEM=$MIRROR_FILESYSTEM"
@@ -119,6 +111,7 @@ jobs:
                 MIRROR_COMPONENTS: ${{ mirror.components }}
             steps:
             - script: |
+                set -ex
                 if [[ "$MIRROR_NAME" == jessie* ]]; then
                   echo "Skipped to update mirror $MIRROR_NAME, $MIRROR_URL"
                   exit 0
@@ -138,8 +131,37 @@ jobs:
             MIRRORS: '${{ convertToJson(fileSystem.mirrors) }}'
           steps:
           - script: |
-              sudo apt-get install -y apt-mirror
-            displayName: 'Init for apt mirror'
-          - script: |
-               azure-pipelines/scripts/mirror/publish-debian-snapshot.sh  -n "$MIRROR_FILESYSTEM" -u "$MIRROR_URL" -j "$MIRRORS" -a "$MIRROR_ARICHTECTURES" -c "$MIRROR_COMPONENTS" -b "$STORAGE_ACCOUNT"
+               set -x
+               df -h # /nfs max storage is 4 TBi
+               ls -al /nfs/v1/sn/work/debian/mirror/deb.debian.org/debian/pool /nfs/v1/sn/work/debian-security/mirror/security.debian.org/debian-security/pool
+               ls -al /nfs/v1/sn/publish/debian/ /nfs/v1/sn/publish/debian-security/ 
+               ls -al /nfs/v1/sn/work/debian/mirror/deb.debian.org/debian/ /nfs/v1/sn/work/debian-security/mirror/security.debian.org/debian-security/
+               azure-pipelines/scripts/mirror/publish-debian-snapshot.sh  -n "$MIRROR_FILESYSTEM" -u "$MIRROR_URL" -j "$MIRRORS" -a "$MIRROR_ARICHTECTURES" -c "$MIRROR_COMPONENTS"
             displayName: 'Publish Apt Mirror'
+          - task: AzureCLI@2
+            displayName: Publish to Azure Storage by task
+            inputs:
+              azureSubscription: 'debian-snapshot'
+              scriptType: 'bash'
+              scriptLocation: 'inlineScript'
+              inlineScript: |
+                set -ex
+                export AZCOPY_AUTO_LOGIN_TYPE=AZCLI
+                #az storage blob delete-batch --auth-mode login --account-name sonicstoragepublic --source debian-snapshot --pattern "debian/ts/latest/*"
+                azcopy copy /nfs/v1/sn/publish/debian/latest/timestamp "https://sonicstoragepublic.blob.core.windows.net/debian-snapshot/debian/latest" --follow-symlinks=true
+                ts=$(cat /nfs/v1/sn/publish/debian/latest/timestamp)
+                azcopy copy /nfs/v1/sn/publish/debian/latest/dists "https://sonicstoragepublic.blob.core.windows.net/debian-snapshot/debian/ts/$ts/" --recursive=true --follow-symlinks=true
+                ts=$(cat /nfs/v1/sn/publish/debian-security/latest/timestamp)
+                azcopy copy /nfs/v1/sn/publish/debian-security/latest/timestamp "https://sonicstoragepublic.blob.core.windows.net/debian-snapshot/debian-security/latest" --follow-symlinks=true
+                azcopy copy /nfs/v1/sn/publish/debian-security/latest/dists "https://sonicstoragepublic.blob.core.windows.net/debian-snapshot/debian-security/ts/$ts/" --recursive=true --follow-symlinks=true
+                #for dist in $(find /nfs/v1/sn/publish/debian/ /nfs/v1/sn/publish/debian-security/ -maxdepth 3 -name dists -type d); do
+                  # dist= /nfs/v1/sn/publish/debian/20250902T172610Z/dists
+                #  ts=$(echo $dist | grep -Eo [0-9]{8}T[0-9]{6}Z)
+                #  repo=$(echo $dist | grep -Eo debian[^/]*/[0-9]{8}T[0-9]{6}Z | grep -Eo debian[^/]*)
+                #  azcopy copy $dist "https://sonicstoragepublic.blob.core.windows.net/debian-snapshot/$repo/ts/$ts/" --recursive=true --follow-symlinks=true
+                #done
+                azcopy sync /nfs/v1/sn/work/debian-security/mirror/security.debian.org/debian-security/pool \
+                  "https://sonicstoragepublic.blob.core.windows.net/debian-snapshot/debian-security/pool"
+                azcopy sync /nfs/v1/sn/work/debian/mirror/deb.debian.org/debian/pool \
+                  "https://sonicstoragepublic.blob.core.windows.net/debian-snapshot/debian/pool"
+
