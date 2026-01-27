@@ -32,21 +32,20 @@ jobs:
       sudo mv -f azcopy /usr/local/bin/
       azcopy  --version
     displayName: 'Install AzCopy'
-  - script: |
-      rm test -rf
-      mkdir test
-      cd test
-      rm versions-web filesnotexist filesnotmatch files -rf
-      git init
-      git remote add sonic https://github.com/sonic-net/sonic-buildimage
-      git fetch sonic
-    displayName: 'Checkout code'
   - task: AzureCLI@2
     inputs:
       azureSubscription: 'WIF-soniccr1'
       scriptType: 'bash'
       scriptLocation: 'inlineScript'
       inlineScript: |
+        set -ex
+        rm test -rf
+        mkdir test
+        cd test
+        rm versions-web filesnotexist filesnotmatch files -rf
+        git init
+        git remote add sonic https://github.com/sonic-net/sonic-buildimage
+        git fetch sonic
         branches=$(git branch -r --list sonic/202??? | grep -Eo 202[0-9]*)
         for branch in $branches; do
           if [ "$branch" -gt "$(date +%Y%m --date '4 year ago')" ]; then
@@ -57,7 +56,8 @@ jobs:
         mv versions-web1 versions-web
         wc -l versions-web
         export AZCOPY_AUTO_LOGIN_TYPE=AZCLI
-        azcopy list 'https://$(StorageAccount).blob.core.windows.net/packages/' | tee $(StorageAccount)
+        azcopy list 'https://$(StorageAccount).blob.core.windows.net/packages/'
+        azcopy list 'https://$(StorageAccount).blob.core.windows.net/packages/' > $(StorageAccount)
         mkdir webfiles
         for file_md5 in $(cat versions-web) $(extrafiles); do
           url=$(echo $file_md5 | sed 's/==.*//')
