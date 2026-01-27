@@ -34,7 +34,7 @@ jobs:
     displayName: 'Install AzCopy'
   - task: AzureCLI@2
     inputs:
-      azureSubscription: 'WIF-soniccr1'
+      azureSubscription: 'sonic2sub'
       scriptType: 'bash'
       scriptLocation: 'inlineScript'
       inlineScript: |
