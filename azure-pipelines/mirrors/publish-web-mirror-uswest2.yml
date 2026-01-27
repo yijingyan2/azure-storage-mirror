@@ -18,9 +18,7 @@ pool: sonic-ubuntu-1c
 
 variables:
 - name: StorageAccount
-  value: 'sonicstoragepublic0'
-- name: StorageAccountReplica
-  value: 'sonicstoragepublic1'
+  value: 'sonicstoragepublic'
 
 jobs:
 - job: PublishWebPackagesToUSWest2
