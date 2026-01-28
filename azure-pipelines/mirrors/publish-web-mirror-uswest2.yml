@@ -60,7 +60,6 @@ jobs:
         mv versions-web1 versions-web
         wc -l versions-web
         export AZCOPY_AUTO_LOGIN_TYPE=AZCLI
-        azcopy list 'https://$(StorageAccount).blob.core.windows.net/packages/'
         azcopy list 'https://$(StorageAccount).blob.core.windows.net/packages/' > $(StorageAccount)
         mkdir webfiles
         for file_md5 in $(cat versions-web) $(extrafiles); do
