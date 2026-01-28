@@ -31,9 +31,10 @@ jobs:
       sudo chmod a+x azcopy
       sudo mv -f azcopy /usr/local/bin/
       azcopy  --version
+    displayName: "Install azcopy"
   - task: AzureCLI@2
     inputs:
-      azureSubscription: 'WIF-soniccr'
+      azureSubscription: 'WIF-soniccicd'
       scriptType: 'bash'
       scriptLocation: 'inlineScript'
       inlineScript: |
@@ -80,7 +81,7 @@ jobs:
         ls -l webfiles/ | awk '{print$NF}' > files
         export AZCOPY_AUTO_LOGIN_TYPE=AZCLI
         azcopy cp "webfiles/*" "https://$(StorageAccount).blob.core.windows.net/packages/"
-      displayName: "Publish Web Mirror"
+    displayName: "Publish Web Mirror"
   - bash: |
       echo "==================filesnotexist=================="
       cat test/filesnotexist || true
