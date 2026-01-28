@@ -49,14 +49,13 @@ jobs:
         branches=$(git branch -r --list sonic/202??? | grep -Eo 202[0-9]*)
         for branch in $branches; do
           if [ "$branch" -gt "$(date +%Y%m --date '4 year ago')" ]; then
-            curl https://raw.githubusercontent.com/sonic-net/sonic-buildimage/refs/heads/master/files/build/versions/default/versions-web >> versions-web
+            curl https://raw.githubusercontent.com/sonic-net/sonic-buildimage/refs/heads/master/files/build/versions-public/default/versions-web >> versions-web
           fi
         done
         cat versions-web | sort -u > versions-web1
         mv versions-web1 versions-web
         wc -l versions-web
         export AZCOPY_AUTO_LOGIN_TYPE=AZCLI
-        azcopy list 'https://$(StorageAccount).blob.core.windows.net/packages/'
         azcopy list 'https://$(StorageAccount).blob.core.windows.net/packages/' > $(StorageAccount)
         mkdir webfiles
         for file_md5 in $(cat versions-web) $(extrafiles); do
