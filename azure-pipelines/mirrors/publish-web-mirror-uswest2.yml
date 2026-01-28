@@ -31,7 +31,6 @@ jobs:
       sudo chmod a+x azcopy
       sudo mv -f azcopy /usr/local/bin/
       azcopy  --version
-      set -ex
       rm test -rf
       mkdir test
       cd test
@@ -42,10 +41,12 @@ jobs:
       branches=$(git branch -r --list sonic/202??? | grep -Eo 202[0-9]*)
       for branch in master $branches; do
         if [ "$branch" -gt "$(date +%Y%m --date '4 year ago')" ]; then
-          curl -fs "https://raw.githubusercontent.com/sonic-net/sonic-buildimage/refs/heads/${branch}/files/build/versions-public/default/versions-web" >> versions-web
-          [ $? -ne 0 ] && curl -fs "https://raw.githubusercontent.com/sonic-net/sonic-buildimage/refs/heads/${branch}/files/build/versions/default/versions-web" >> versions-web
+          if ! curl -fs "https://raw.githubusercontent.com/sonic-net/sonic-buildimage/refs/heads/${branch}/files/build/versions-public/default/versions-web" >> versions-web; then
+            curl -fs "https://raw.githubusercontent.com/sonic-net/sonic-buildimage/refs/heads/${branch}/files/build/versions/default/versions-web" >> versions-web
+          fi
         fi
       done
+      cat versions-web
       cat versions-web | sort -u > versions-web1
       mv versions-web1 versions-web
       wc -l versions-web
