@@ -31,51 +31,56 @@ jobs:
       sudo chmod a+x azcopy
       sudo mv -f azcopy /usr/local/bin/
       azcopy  --version
-      rm test -rf
-      mkdir test
-      cd test
-      rm versions-web filesnotexist filesnotmatch files -rf
-      git init
-      git remote add sonic https://github.com/sonic-net/sonic-buildimage
-      git fetch sonic
-      branches=$(git branch -r --list sonic/202??? | grep -Eo 202[0-9]*)
-      for branch in master $branches; do
-        if [ "$branch" -gt "$(date +%Y%m --date '4 year ago')" ]; then
-          if ! curl -fs "https://raw.githubusercontent.com/sonic-net/sonic-buildimage/refs/heads/${branch}/files/build/versions-public/default/versions-web" >> versions-web; then
-            curl -fs "https://raw.githubusercontent.com/sonic-net/sonic-buildimage/refs/heads/${branch}/files/build/versions/default/versions-web" >> versions-web
+  - task: AzureCLI@2
+    inputs:
+      azureSubscription: 'WIF-soniccr'
+      scriptType: 'bash'
+      scriptLocation: 'inlineScript'
+      inlineScript: |
+        set -ex
+        rm test -rf
+        mkdir test
+        cd test
+        rm versions-web filesnotexist filesnotmatch files -rf
+        git init
+        git remote add sonic https://github.com/sonic-net/sonic-buildimage
+        git fetch sonic
+        branches=$(git branch -r --list sonic/202??? | grep -Eo 202[0-9]*)
+        for branch in master $branches; do
+          if [ "$branch" -gt "$(date +%Y%m --date '4 year ago')" ]; then
+            if ! curl -fs "https://raw.githubusercontent.com/sonic-net/sonic-buildimage/refs/heads/${branch}/files/build/versions-public/default/versions-web" >> versions-web; then
+              curl -fs "https://raw.githubusercontent.com/sonic-net/sonic-buildimage/refs/heads/${branch}/files/build/versions/default/versions-web" >> versions-web
+            fi
           fi
-        fi
-      done
-      cat versions-web
-      cat versions-web | sort -u > versions-web1
-      mv versions-web1 versions-web
-      wc -l versions-web
-      export AZCOPY_AUTO_LOGIN_TYPE=AZCLI
-      azcopy list 'https://$(StorageAccount).blob.core.windows.net/packages/'
-      azcopy list 'https://$(StorageAccount).blob.core.windows.net/packages/' > $(StorageAccount)
-      mkdir webfiles
-      for file_md5 in $(cat versions-web) $(extrafiles); do
-        url=$(echo $file_md5 | sed 's/==.*//')
-        [ -z "$url" ] && continue
-        md5=$(echo $file_md5 | sed 's/.*==//')
-        filename=$(echo $url | awk -F"/" '{print $NF}' | cut -d? -f1 | cut -d# -f1)
-        if ! wget -q -O webfiles/$filename "$url"; then
-          echo "$url" >> filesnotexist
-          rm -rf webfiles/$filename
-          continue
-        fi
-        new_md5=$(md5sum webfiles/$filename | cut -d " " -f1)
-        [[ "$md5" != "$new_md5" ]] && echo "$url" >> filesnotmatch
-        mv webfiles/$filename webfiles/$filename-$new_md5
-        if grep $filename-$new_md5 $(StorageAccount); then
-          rm webfiles/$filename-$new_md5
-        fi
-      done
-      ls webfiles/* || { echo "Nothing Changed!!!"; exit 0; }
-      ls -l webfiles/ | awk '{print$NF}' > files
-      export AZCOPY_AUTO_LOGIN_TYPE=AZCLI
-      azcopy cp "webfiles/*" "https://$(StorageAccount).blob.core.windows.net/packages/"
-    displayName: "Publish Web Mirror"
+        done
+        cat versions-web | sort -u > versions-web1
+        mv versions-web1 versions-web
+        wc -l versions-web
+        export AZCOPY_AUTO_LOGIN_TYPE=AZCLI
+        azcopy list 'https://$(StorageAccount).blob.core.windows.net/packages/' > $(StorageAccount)
+        mkdir webfiles
+        for file_md5 in $(cat versions-web) $(extrafiles); do
+          url=$(echo $file_md5 | sed 's/==.*//')
+          [ -z "$url" ] && continue
+          md5=$(echo $file_md5 | sed 's/.*==//')
+          filename=$(echo $url | awk -F"/" '{print $NF}' | cut -d? -f1 | cut -d# -f1)
+          if ! wget -q -O webfiles/$filename "$url"; then
+            echo "$url" >> filesnotexist
+            rm -rf webfiles/$filename
+            continue
+          fi
+          new_md5=$(md5sum webfiles/$filename | cut -d " " -f1)
+          [[ "$md5" != "$new_md5" ]] && echo "$url" >> filesnotmatch
+          mv webfiles/$filename webfiles/$filename-$new_md5
+          if grep $filename-$new_md5 $(StorageAccount); then
+            rm webfiles/$filename-$new_md5
+          fi
+        done
+        ls webfiles/* || { echo "Nothing Changed!!!"; exit 0; }
+        ls -l webfiles/ | awk '{print$NF}' > files
+        export AZCOPY_AUTO_LOGIN_TYPE=AZCLI
+        azcopy cp "webfiles/*" "https://$(StorageAccount).blob.core.windows.net/packages/"
+      displayName: "Publish Web Mirror"
   - bash: |
       echo "==================filesnotexist=================="
       cat test/filesnotexist || true
