@@ -27,6 +27,8 @@ jobs:
   - checkout: none
   - bash: |
       set -ex
+      curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash
+      az --version
       wget -O- "https://aka.ms/downloadazcopy-v10-linux" | tar -zxf - --strip-components=1
       sudo chmod a+x azcopy
       sudo mv -f azcopy /usr/local/bin/
