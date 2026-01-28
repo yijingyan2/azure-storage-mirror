@@ -47,11 +47,13 @@ jobs:
         git remote add sonic https://github.com/sonic-net/sonic-buildimage
         git fetch sonic
         branches=$(git branch -r --list sonic/202??? | grep -Eo 202[0-9]*)
-        for branch in $branches; do
-          if [ "$branch" -gt "$(date +%Y%m --date '4 year ago')" ]; then
-            curl https://raw.githubusercontent.com/sonic-net/sonic-buildimage/refs/heads/master/files/build/versions-public/default/versions-web >> versions-web
-          fi
-        done
+        # TODO: include release branches
+        # for branch in $branches; do
+        #   if [ "$branch" -gt "$(date +%Y%m --date '4 year ago')" ]; then
+        #     curl https://raw.githubusercontent.com/sonic-net/sonic-buildimage/refs/heads/master/files/build/versions-public/default/versions-web >> versions-web
+        #   fi
+        # done
+        curl https://raw.githubusercontent.com/sonic-net/sonic-buildimage/refs/heads/master/files/build/versions-public/default/versions-web >> versions-web
         cat versions-web | sort -u > versions-web1
         mv versions-web1 versions-web
         wc -l versions-web
