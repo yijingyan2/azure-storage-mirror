@@ -134,6 +134,11 @@ update_mirrors()
 
     # Update the mirrors
     sudo apt-mirror mirror.list
+    if [ $ENDPOINT == 'security.debian.org/debian-security']; then
+        ls -al $APT_MIRROR_DIR/mirror/$ENDPOINT/pool/updates/main/n/net-snmp
+    else
+        ls -al $APT_MIRROR_DIR/mirror/$ENDPOINT/pool/main/n/net-snmp
+    fi
     
     # Create snapshot and links
     sudo rm -rf $SNAPSHOT_TMP
