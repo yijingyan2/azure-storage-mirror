@@ -160,6 +160,8 @@ jobs:
                 #  repo=$(echo $dist | grep -Eo debian[^/]*/[0-9]{8}T[0-9]{6}Z | grep -Eo debian[^/]*)
                 #  azcopy copy $dist "https://sonicstoragepublic.blob.core.windows.net/debian-snapshot/$repo/ts/$ts/" --recursive=true --follow-symlinks=true
                 #done
+                ls -al sync /nfs/v1/sn/work/debian-security/mirror/security.debian.org/debian-security/pool /nfs/v1/sn/work/debian/mirror/deb.debian.org/debian/pool
+                sleep 7200
                 azcopy sync /nfs/v1/sn/work/debian-security/mirror/security.debian.org/debian-security/pool \
                   "https://sonicstoragepublic.blob.core.windows.net/debian-snapshot/debian-security/pool"
                 azcopy sync /nfs/v1/sn/work/debian/mirror/deb.debian.org/debian/pool \
