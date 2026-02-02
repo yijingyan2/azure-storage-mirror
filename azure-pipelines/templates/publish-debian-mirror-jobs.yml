@@ -62,6 +62,7 @@ jobs:
         ip addr
         sudo apt-get update
         sudo apt-get install -y nfs-common jq apt-mirror
+        sudo apt-get install -y apt-mirror2 || true
         curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash
 
         . /etc/os-release

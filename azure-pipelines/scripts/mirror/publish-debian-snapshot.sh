@@ -134,6 +134,13 @@ update_mirrors()
 
     # Update the mirrors
     sudo apt-mirror mirror.list
+    if [[ "$ENDPOINT" == 'deb.debian.org/debian' ]]; then
+      ls -al $APT_MIRROR_DIR/mirror/$ENDPOINT/pool/main/n/net-snmp
+      ls -al $APT_MIRROR_DIR/mirror/$ENDPOINT/pool/main/a/activemq
+    else
+      ls -al $APT_MIRROR_DIR/mirror/$ENDPOINT/pool/updates/main/n/net-snmp
+      ls -al $APT_MIRROR_DIR/mirror/$ENDPOINT/pool/updates/main/a/activemq
+    fi
     
     # Create snapshot and links
     sudo rm -rf $SNAPSHOT_TMP
