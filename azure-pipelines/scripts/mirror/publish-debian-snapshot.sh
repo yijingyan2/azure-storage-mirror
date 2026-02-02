@@ -137,9 +137,11 @@ update_mirrors()
     if [[ "$ENDPOINT" == 'deb.debian.org/debian' ]]; then
       ls -al $APT_MIRROR_DIR/mirror/$ENDPOINT/pool/main/n/net-snmp
       ls -al $APT_MIRROR_DIR/mirror/$ENDPOINT/pool/main/a/activemq
+      find $APT_MIRROR_DIR/mirror/$ENDPOINT/pool/main/ -name '*.dsc' | head -10
     else
       ls -al $APT_MIRROR_DIR/mirror/$ENDPOINT/pool/updates/main/n/net-snmp
       ls -al $APT_MIRROR_DIR/mirror/$ENDPOINT/pool/updates/main/a/activemq
+      find $APT_MIRROR_DIR/mirror/$ENDPOINT/pool/updates/main/ -name '*.dsc' | head -10
     fi
     
     # Create snapshot and links
