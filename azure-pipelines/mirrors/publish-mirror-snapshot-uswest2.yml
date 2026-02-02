@@ -13,4 +13,4 @@ variables:
 jobs:
 - template: ../templates/publish-debian-mirror-jobs.yml
   parameters:
-    mirrorType: "apt-mirror"
+    mirrorType: "aptly"
